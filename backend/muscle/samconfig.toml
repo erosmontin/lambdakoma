@@ -1,0 +1,8 @@
+version = 0.1
+[default.deploy.parameters]
+stack_name = "koma"
+resolve_s3 = true
+s3_prefix = "koma"
+region = "us-east-1"
+capabilities = "CAPABILITY_IAM"
+image_repositories = ["KomaLambdaFunction=469266894233.dkr.ecr.us-east-1.amazonaws.com/koma1523a3e2/komalambdafunction308252bdrepo"]

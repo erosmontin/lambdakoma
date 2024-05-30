@@ -1,0 +1,41 @@
+# Use the official AWS Lambda Python runtime as a parent image
+FROM public.ecr.aws/lambda/python:3.11
+
+WORKDIR ${LAMBDA_TASK_ROOT}
+
+# Install Julia and Git
+RUN yum update -y && \
+    yum install -y wget git tar && \
+    wget https://julialang-s3.julialang.org/bin/linux/x64/1.9/julia-1.9.0-linux-x86_64.tar.gz && \
+    tar xzf julia-1.9.0-linux-x86_64.tar.gz -C /usr --strip-components 1 && \
+    rm -rf julia-1.9.0-linux-x86_64.tar.gz
+# Install Julia packages
+
+# Create the JULIA_DEPOT_PATH directory
+RUN mkdir -p ${LAMBDA_TASK_ROOT}/packages
+
+# Set permissions for the JULIA_DEPOT_PATH directory
+RUN chmod -R 777 ${LAMBDA_TASK_ROOT}/
+
+
+ENV JULIA_DEPOT_PATH ${LAMBDA_TASK_ROOT}/packages
+
+ENV JULIA_CPU_TARGET=generic 
+
+# Install Julia packages
+RUN julia -e 'using Pkg;Pkg.add(["KomaMRI","FileIO","JLD2","CpuId"]);'
+
+# Copy the requirements.txt file into the container
+COPY requirements.txt .
+
+# Install any needed packages specified in requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the rest of the working directory contents into the container
+COPY . .
+ENV JULIA_DEPOT_PATH="/tmp/:${JULIA_DEPOT_PATH}"
+
+RUN julia -e "using Pkg; Pkg.instantiate();Pkg.precompile();"
+
+ENV LOAD_PATH="${LAMBDA_TASK_ROOT}:${LOAD_PATH}"
+CMD ["app.handler" ]

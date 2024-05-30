@@ -1,0 +1,29 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: An AWS Serverless Application that uses a containerized Lambda function with Python 3.11 and Julia.
+
+Resources:
+  #this function is a container image of koma
+  KomaLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Image
+      MemorySize: 4096
+      Timeout: 900
+      EphemeralStorage:
+        Size: 10240
+      Events:
+        HelloWorld:
+          Type: Api 
+          Properties:
+            Path: /hello
+            Method: get
+    Metadata:
+      Dockerfile: Dockerfile
+      DockerContext: app/
+      DockerTag: python3.11-v1
+
+Outputs:
+  HelloWorldApi:
+    Description: "API Gateway endpoint URL for Prod stage for Hello World function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/"
