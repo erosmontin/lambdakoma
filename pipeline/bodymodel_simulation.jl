@@ -5,15 +5,16 @@ using JSON
 using NPZ
 
 # myscript.jl
-model = ARGS[1]
-prop = ARGS[2]
-seq = ARGS[3]
-directory = ARGS[4]
-slice = parse(Int,ARGS[5])
+B0= parse(Float64,ARGS[1])
+model = ARGS[2]
+prop = ARGS[3]
+seq = ARGS[4]
+directory = ARGS[5]
+slice = parse(Int,ARGS[6])
 
-if length(ARGS) < 3
+if length(ARGS) < 4
     println("Error: This script requires at least 3 arguments.")
-    println("Usage: julia phantom_model_converter_duke2D.jl <model> <tissue_properties> <sequence> <saving_directory> <slice>")
+    println("Usage: julia phantom_model_converter_duke2D.jl <T> <model> <tissue_properties> <sequence> <saving_directory> <slice>")
     exit(1)
 end
 println("Model: ", model)
@@ -101,12 +102,16 @@ obj = Phantom{Float64}(
 	Δw = Δw[ρ.!=0],
 );
 
+println("Phantom created")
 # Simulate phantom
 seq = read_seq(seq); # Pulseq file
-# seq = PulseDesigner.EPI_example(); # EPI example
+println("Sequence read")
 sim_params = KomaMRICore.default_sim_params();
-sys = Scanner();
+println("Simulation parameters set")
+sys = Scanner(B0=B0);
+println("Scanner created")
 raw = simulate(obj, seq, sys; sim_params);
+println("Simulation done")
 
 Np =size(raw.profiles)[1]
 Nf= size(raw.profiles[1].data)[1]
@@ -123,7 +128,7 @@ end
 filename = directory * "/k.npz"
 
 npzwrite(filename, K)
-D=Dict("version"=> "v0.0v", "KS"=>filename, "origin"=>[0,0,0], "spacing"=>[1,1,1], "direction"=>[1,0,0,0,1,0,0,0,1]
+D=Dict("version"=> "v0.0v", "KS"=>filename, "origin"=>[0,0,0], "spacing"=>[1,1,1], "direction"=>[1,0,0,0,1,0,0,0,1],"slice"=>slice, "sequence"=>seq, "model"=>model, "properties"=>prop
 )
 
 jsonfilename = directory * "/info.json"
