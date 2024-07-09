@@ -15,15 +15,6 @@ PROP="Tissue_300MHz.prop"
 FIELD="ggg.mhd"
 B0=3.0
 
-# # fixed the size of the m
-# import pyable_eros_montin.imaginable as ima
-# IM=ima.Imaginable(MODEL)
-# IM.cropImage([0,0,SL],[0,0,SL+1])
-# NSL=1 #julia start from 1....
-# M=pn.Pathable(MODEL)
-# M.addPrefix("cropped_")
-# NMODEL=M.getPosition()
-# IM.writeImageAs(NMODEL)
 
 B.setCommand(f" julia --threads=auto -O3 bodymodel_simulation.jl {B0} {MODEL} {PROP} {SEQ} {OUTDIR} {SL}")
 B.run()

@@ -14,7 +14,7 @@ slice = parse(Int,ARGS[6])
 
 if length(ARGS) < 4
     println("Error: This script requires at least 3 arguments.")
-    println("Usage: julia phantom_model_converter_duke2D.jl <T> <model> <tissue_properties> <sequence> <saving_directory> <slice>")
+    println("Usage: julia bodymodel_simulation.jl <T> <model> <tissue_properties> <sequence> <saving_directory> <slice>")
     exit(1)
 end
 println("Model: ", model)
