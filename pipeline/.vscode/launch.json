@@ -13,7 +13,7 @@
             "cwd": "${workspaceFolder}",
             "juliaEnv": "${command:activeJuliaEnvironment}",
             "externalConsole": false,
-            "args": ["7","model.nii.gz", "Tissue_300MHz.prop", "sdl_pypulseq.seq"]
+            "args": ["d7","model.nii.gz", "Tissue_300MHz.prop", "sdl_pypulseq.seq"]
 
         }
     ]
