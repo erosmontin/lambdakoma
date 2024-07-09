@@ -1,5 +1,5 @@
-pipeline/.vscode/
-pipeline/__pycache__/
-backend/.vscode/
-backend/muscle/.aws-sam/
+pipeline/.vscode
+pipeline/__pycache__
+backend/.vscode
+backend/muscle/.aws-sam
 backend/muscle/samconfig.toml
