@@ -7,16 +7,17 @@ L.start()
 B=pn.BashIt()
 
 #customize the calculation
-SL=90
+SL=98
 OUTDIR="/g/KOMA"
 SEQ="pipeline/sdl_pypulseq.seq"
 MODEL="pipeline/model.nii.gz"
 PROP="pipeline/Tissue_300MHz.prop"
 FIELD="ggg.mhd"
-B0=3.0
+B0=7.0
 
-
-B.setCommand(f" julia --threads=auto -O3 pipeline/bodymodel_simulation.jl {B0} {MODEL} {PROP} {SEQ} {OUTDIR} {SL}")
+NT=8
+GPU=False
+B.setCommand(f" julia --threads=auto -O3 pipeline/bodymodel_simulation.jl {B0} {MODEL} {PROP} {SEQ} {OUTDIR} {SL} {GPU} {NT}")
 B.run()
 
 

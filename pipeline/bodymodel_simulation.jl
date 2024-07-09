@@ -11,7 +11,6 @@ prop = ARGS[3]
 seq = ARGS[4]
 directory = ARGS[5]
 slice = parse(Int,ARGS[6])
-
 if length(ARGS) < 4
     println("Error: This script requires at least 3 arguments.")
     println("Usage: julia bodymodel_simulation.jl <T> <model> <tissue_properties> <sequence> <saving_directory> <slice>")
@@ -22,8 +21,23 @@ println("Tissue Properties: ", prop)
 println("Sequence: ", seq)
 println("Output Directory: ", directory)
 println("Slice: ", slice)
+println("B0: ", B0)
 
+GPU = false
+println(length(ARGS))
 
+if length(ARGS) > 6
+    GPU = parse(Bool, lowercase(ARGS[7]))
+end
+
+NT=1
+if !GPU
+    println("Running on CPU")
+    if length(ARGS) > 7
+        NT=parse(Int,ARGS[8])
+    end
+
+end
 if !isfile(model)
     println("Model File ", model, " does not exist.")
     exit(1)
@@ -105,8 +119,15 @@ obj = Phantom{Float64}(
 println("Phantom created")
 # Simulate phantom
 seq = read_seq(seq); # Pulseq file
+
 println("Sequence read")
 sim_params = KomaMRICore.default_sim_params();
+
+if !GPU
+    sim_params["gpu"] = false
+    sim_params["Nthreads"] = NT
+ 
+end
 println("Simulation parameters set")
 sys = Scanner(B0=B0);
 println("Scanner created")
