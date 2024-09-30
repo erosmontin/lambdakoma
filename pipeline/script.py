@@ -2,6 +2,8 @@ import pynico_eros_montin.pynico as pn
 import cloudmrhub.cm2D as cmh
 import numpy as np
 import common as c
+
+import sys
 L=pn.Timer()
 L.start()
 B=pn.BashIt()
@@ -9,6 +11,10 @@ B=pn.BashIt()
 #customize the calculation
 SL=98
 OUTDIR="/g/KOMA"
+if len(sys.argv) > 1:
+    OUTDIR = sys.argv[1]
+
+
 SEQ="pipeline/sdl_pypulseq.seq"
 MODEL="pipeline/model.nii.gz"
 PROP="pipeline/Tissue_300MHz.prop"
