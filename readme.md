@@ -74,3 +74,5 @@ Step 7: Verify Installation
    - To check installed Python packages, run:
        pip list
 
+<!-- 
+![JuliaPkgVersion](https://img.shields.io/github/v/tag/JuliaLang/julia?label=Julia) -->
