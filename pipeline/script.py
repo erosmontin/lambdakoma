@@ -14,8 +14,8 @@ MODEL="pipeline/model.nii.gz"
 PROP="pipeline/Tissue_300MHz.prop"
 FIELD="ggg.mhd"
 B0=7.0
-NT=20
-GPU=True
+NT=10
+GPU=False
 A=pn.Pathable(OUTDIR+'/')
 A.ensureDirectoryExistence()
 T,SL=c.process_slice(SL, B0, MODEL, PROP, SEQ, OUTDIR, GPU,NT)
