@@ -35,7 +35,7 @@ On Linux:
 1. Open Julia in the terminal:
    julia
 2. Add the necessary packages:
-   using Pkg
+   using Pkg;
    Pkg.add(["KomaMRI", "FileIO", "JLD2","JSON","NPZ","NIfTI"])
 3. Exit Julia:
    exit()
@@ -74,4 +74,3 @@ Step 7: Verify Installation
    - To check installed Python packages, run:
        pip list
 
-You've successfully set up Julia, the required Julia packages, Python, and the camrie Python environment with the necessary dependencies.
