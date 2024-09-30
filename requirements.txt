@@ -1,1 +1,3 @@
 git+https://github.com/erosmontin/cmrawspy
+git+https://github.com/cloudmrhub-com/cloudmrhub
+git+https://github.com/erosmontin/pyable
