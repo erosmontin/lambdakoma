@@ -10,7 +10,7 @@ model = ARGS[2]
 prop = ARGS[3]
 seq = ARGS[4]
 directory = ARGS[5]
-slice = parse(Int,ARGS[6])
+slicen = parse(Int,ARGS[6])
 if length(ARGS) < 4
     println("Error: This script requires at least 3 arguments.")
     println("Usage: julia bodymodel_simulation.jl <T> <model> <tissue_properties> <sequence> <saving_directory> <slice>")
@@ -20,7 +20,7 @@ println("Model: ", model)
 println("Tissue Properties: ", prop)
 println("Sequence: ", seq)
 println("Output Directory: ", directory)
-println("Slice: ", slice)
+println("Slice: ", slicen)
 println("B0: ", B0)
 
 GPU = false
@@ -57,7 +57,7 @@ end
 # For NIfTI files
 structure = niread(model);
 voxelSize = [structure.header.pixdim[i] for i = 2:min(structure.header.dim[1], 3)+1][1];
-slice = structure.raw[:, :, slice];
+slice = structure.raw[:, :, slicen];
 
 # Plot selected slice
 # plot_image(slice)
@@ -149,7 +149,7 @@ end
 filename = directory * "/k.npz"
 
 npzwrite(filename, K)
-D=Dict("version"=> "v0.0v", "KS"=>filename, "origin"=>[0,0,0], "spacing"=>[1,1,1], "direction"=>[1,0,0,0,1,0,0,0,1],"slice"=>slice, "sequence"=>seq, "model"=>model, "properties"=>prop
+D=Dict("version"=> "v0.0v", "KS"=>filename, "origin"=>[0,0,0], "spacing"=>[1,1,1], "direction"=>[1,0,0,0,1,0,0,0,1],"slice"=>slicen, "sequence"=>seq, "model"=>model, "properties"=>prop
 )
 
 jsonfilename = directory * "/info.json"

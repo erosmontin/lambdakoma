@@ -14,14 +14,15 @@ MODEL="pipeline/model.nii.gz"
 PROP="pipeline/Tissue_300MHz.prop"
 FIELD="ggg.mhd"
 B0=7.0
-NT=10
-GPU=False
+NT=20
+GPU=True
 A=pn.Pathable(OUTDIR+'/')
 A.ensureDirectoryExistence()
 T,SL=c.process_slice(SL, B0, MODEL, PROP, SEQ, OUTDIR, GPU,NT)
 import matplotlib.pyplot as plt
 plt.imshow(np.abs(T), cmap='gray')
-plt.title(f'Reconstructed Image (RSS) {L.stop()/60.0:.2f} min, slice {SL}')
+_tim=L.stop()
+plt.title(f'Reconstructed Image (RSS) {float(_tim["time"])/60.0:.2f} min, slice {SL}')
 plt.colorbar()
 plt.show()
 
