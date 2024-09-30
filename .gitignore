@@ -4,3 +4,4 @@ backend/.vscode
 backend/muscle/.aws-sam
 backend/muscle/samconfig.toml
 pipeline/.vscode/launch.json
+.DS_Store
