@@ -9,11 +9,14 @@ L.start()
 B=pn.BashIt()
 
 #customize the calculation
-SL=98
+
 OUTDIR="/g/KOMA"
 if len(sys.argv) > 1:
     OUTDIR = sys.argv[1]
 
+SL=98
+if len(sys.argv) > 2:
+    SL = int(sys.argv[2])
 
 SEQ="pipeline/sdl_pypulseq.seq"
 MODEL="pipeline/model.nii.gz"
