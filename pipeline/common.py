@@ -4,7 +4,7 @@ import numpy as np
 
 def process_slice(SL, B0, MODEL, PROP, SEQ, OUTDIR, SENSITIVITIES=None,GPU=False, NT=10):
     # simulate the slice
-    data = simulate_2D_slice(SL, B0, MODEL, PROP, SEQ, OUTDIR, SENSITIVITIES=SENSITIVITIES,GPU=GPU, NT=NT)
+    data = simulate_2D_slice(SL, B0, MODEL, PROP, SEQ, OUTDIR, SENSITIVITIES,GPU, NT)
     R=cmh.cm2DReconRSS()
     R.setPrewhitenedSignal(data)
     return R.getOutput(),SL
@@ -32,7 +32,7 @@ import cloudmrhub.cm2D as cmh
 import pyable_eros_montin.imaginable as ima
 import os
 import shutil
-def readMarieOutput(file,b1mpath=None):
+def readMarieOutput(file,b1mpath=None,target=None):
     #unzip the file
     if b1mpath is None:
         b1mpath=pn.createTemporaryPathableDirectory().getPosition()
@@ -46,11 +46,18 @@ def readMarieOutput(file,b1mpath=None):
     O.addBaseName("info.json")
     J=O.readJson()
     OUT={"b1m":[],"NC":[]}
+    if target:
+        _t=ima.Imaginable(target)
     for d in J["data"]:
         if d["description"]=="b1m":
             of=os.path.join(O.getPath(),d["filename"])
             f=os.path.join(b1mpath,d["filename"])
-            shutil.move(of,b1mpath)
+            if target:
+                _p=ima.Imaginable(of)
+                _p.resampleOnTargetImage(_t)
+                _p.writeImageAs(f)
+            else:
+                shutil.move(of,b1mpath)
             OUT["b1m"].append(f)
         if "noisecovariance" in d["description"].lower():
             f=os.path.join(O.getPath(),d["filename"])

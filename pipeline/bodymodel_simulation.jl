@@ -13,13 +13,15 @@ directory = ARGS[5]
 slicen = parse(Int,ARGS[6])
 if length(ARGS) < 4
     println("Error: This script requires at least 3 arguments.")
-    println("Usage: julia bodymodel_simulation.jl <T> <model> <tissue_properties> <sequence> <saving_directory> <slice>")
+    println("Usage: julia bodymodel_simulation.jl <T> <model> <tissue_properties> <sequence> <saving_directory> <_slice>")
     exit(1)
 end
-Sensitivities_directory = Nothing
+Sensitivities_directory = nothing
 
 if length(ARGS) > 6
-    Sensitivities_directory = ARGS[7]
+    if !isnothing(ARGS[7])
+        Sensitivities_directory = ARGS[7]
+    end
 end
 
 
@@ -65,10 +67,10 @@ end
 # For NIfTI files
 structure = niread(model);
 voxelSize = [structure.header.pixdim[i] for i = 2:min(structure.header.dim[1], 3)+1][1];
-slice = structure.raw[:, :, slicen];
+_slice = structure.raw[:, :, slicen];
 
 
-if Sensitivities_directory != Nothing
+if isnothing(Sensitivities_directory)
     if !isdir(Sensitivities_directory)
         println("Sensitivities Directory ", Sensitivities_directory, " does not exist.")
         exit(1)
@@ -76,25 +78,27 @@ if Sensitivities_directory != Nothing
         files = readdir(Sensitivities_directory)
         slices = []
         for file in files
-            structure = niread(joinpath(Sensitivities_directory, file))
-            slice = structure.raw[:, :, slicen]
-            # Append the slice to the slices array
-            push!(slices, slice)
+            O=joinpath(Sensitivities_directory, file)
+            println(O)
+            _structure_ = niread(O)
+            _slice_ = _structure_.raw[:, :, slicen]
+            # Append the _slice to the slices array
+            push!(slices, _slice_)
         end
         # Concatenate the slices along the 4th dimension to create a 4D array
         sensitivities = cat(dims=4, slices...)
     end
     end
 
-    
 
 
-# Plot selected slice
-# plot_image(slice)
+
+# Plot selected _slice
+# plot_image(_slice)
 
 # Define spin position arrays
 Δx = 1e-3 * voxelSize;              # Voxel size
-M, N = size(slice);          # Number of spins in x and y
+M, N = size(_slice);          # Number of spins in x and y
 FOVx = (M-1)*Δx;             # Field of view in x
 FOVy = (N-1)*Δx;             # Field of view in y
 x = -FOVx/2:Δx:FOVx/2;       # x spin coordinates vector
@@ -116,13 +120,13 @@ close(propertiesFile);
 # value = parse(Float64, value)
 
 # Define proton density, T1, T2, T2s, chemical shift arrays
-ρ = zeros(size(slice)[1], size(slice)[2]);
-T1 = zeros(size(slice)[1], size(slice)[2]);
-T2 = zeros(size(slice)[1], size(slice)[2]);
-T2s = zeros(size(slice)[1], size(slice)[2]);
-Δw = zeros(size(slice)[1], size(slice)[2]);
+ρ = zeros(size(_slice)[1], size(_slice)[2]);
+T1 = zeros(size(_slice)[1], size(_slice)[2]);
+T2 = zeros(size(_slice)[1], size(_slice)[2]);
+T2s = zeros(size(_slice)[1], size(_slice)[2]);
+Δw = zeros(size(_slice)[1], size(_slice)[2]);
 for index in range(1, length(propertyLine))
-    mask = slice .== parse(Int, propertyLine[index][1])
+    mask = _slice .== parse(Int, propertyLine[index][1])
     ρ[mask] .= parse(Float64, propertyLine[index][4])
     T1[mask] .= parse(Float64, propertyLine[index][2])
     T2[mask] .= parse(Float64, propertyLine[index][3])
@@ -179,7 +183,7 @@ end
 filename = directory * "/k.npz"
 
 npzwrite(filename, K)
-D=Dict("version"=> "v0.0v", "KS"=>filename, "origin"=>[0,0,0], "spacing"=>[1,1,1], "direction"=>[1,0,0,0,1,0,0,0,1],"slice"=>slicen, "sequence"=>seq, "model"=>model, "properties"=>prop
+D=Dict("version"=> "v0.0v", "KS"=>filename, "origin"=>[0,0,0], "spacing"=>[1,1,1], "direction"=>[1,0,0,0,1,0,0,0,1],"_slice"=>slicen, "sequence"=>seq, "model"=>model, "properties"=>prop
 )
 
 jsonfilename = directory * "/info.json"
