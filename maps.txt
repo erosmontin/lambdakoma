@@ -1,0 +1,17 @@
+# Input
+BloodPerfusion (T)
+HeatCapacity (T)
+Metabolism (T)
+meterialDensity /RhoH (T,K)
+ThermalConductivity (T)
+T1 (K)
+T2 (K)
+ChemShift (K)
+SigmaCon (Conductivity) (M)
+Espilon(Permittivity) (M)
+RhoMass (M,K)
+
+
+# Outputs
+SAR
+TOld.nii.gz (computed in tess)

@@ -36,6 +36,10 @@ import matplotlib.pyplot as plt
 plt.imshow(np.abs(T), cmap='gray')
 _tim=L.stop()
 plt.title(f'Reconstructed Image (RSS) {float(_tim["time"])/60.0:.2f} min, slice {SL}')
+# origin of axis  at bottom left
+plt.gca().invert_yaxis()
+
 plt.colorbar()
 plt.show()
+
 
