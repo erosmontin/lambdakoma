@@ -1,4 +1,4 @@
-using KomaMRI
+using KomaNYU
 using NIfTI
 using NPZ
 using JSON
@@ -70,7 +70,7 @@ structure = niread(model);
 voxelSize = [structure.header.pixdim[i] for i = 2:min(structure.header.dim[1], 3)+1][1];
 _slice = structure.raw[:, :, slicen];
 
-
+sensitivities = nothing
 if isnothing(Sensitivities_directory)
     if !isdir(Sensitivities_directory)
         println("Sensitivities Directory ", Sensitivities_directory, " does not exist.")
@@ -89,10 +89,7 @@ if isnothing(Sensitivities_directory)
         # Concatenate the slices along the 4th dimension to create a 4D array
         sensitivities = cat(dims=4, slices...)
     end
-    end
-
-
-
+end
 
 # Plot selected _slice
 # plot_image(_slice)
@@ -156,7 +153,7 @@ println("Phantom created")
 seq = read_seq(seq); # Pulseq file
 
 println("Sequence read")
-sim_params = KomaMRICore.default_sim_params();
+sim_params = KomaNYUCore.default_sim_params();
 
 if !GPU
     sim_params["gpu"] = false
@@ -167,10 +164,17 @@ println("Simulation parameters set")
 sys = Scanner(B0=B0);
 println("Scanner created")
 raw = simulate(obj, seq, sys; sim_params);
+display(size(raw.profiles[1].data))
 println("Simulation done")
-
-Np =size(raw.profiles)[1]
-Nf= size(raw.profiles[1].data)[1]
+if !isnothing(sensitivities)
+	profile0 = raw.profiles[1]
+	resize!(raw.profiles,size(sensitivities,4))
+	for k=1:size(sensitivities,4)
+		raw.profiles[k] = Profile(profile0.head,profile0.traj,profile0.data.*view(sensitivities,:,:,:,k))
+	end
+end
+Np = length(raw.profiles)
+Nf= size(raw.profiles[1].data,1)
 
 K=zeros(ComplexF32,Np,Nf)
 for i in range(1,Np)
