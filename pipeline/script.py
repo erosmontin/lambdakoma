@@ -30,7 +30,7 @@ NT=10
 GPU=False
 A=pn.Pathable(OUTDIR+'/')
 A.ensureDirectoryExistence()
-SENS_DIR=pn.Pathable(FIELD["b1m"][0])
+SENS_DIR=pn.Pathable(FIELD["b1m"][0]).getPath()
 T,SL=c.process_slice(SL, B0, MODEL, PROP, SEQ, OUTDIR,SENS_DIR ,GPU,NT)
 import matplotlib.pyplot as plt
 plt.imshow(np.abs(T), cmap='gray')

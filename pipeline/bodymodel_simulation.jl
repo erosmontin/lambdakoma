@@ -19,7 +19,8 @@ end
 Sensitivities_directory = nothing
 
 if length(ARGS) > 6
-    if !isnothing(ARGS[7])
+    println("Sensitivities Directory: ", ARGS[7])
+    if !isnothing(ARGS[7]) && isdir(ARGS[7])
         Sensitivities_directory = ARGS[7]
     end
 end
