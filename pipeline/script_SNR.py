@@ -30,7 +30,7 @@ NT=10
 GPU=False
 A=pn.Pathable(OUTDIR+'/')
 A.ensureDirectoryExistence()
-data=c.simulate_2D_slice(SL, B0, MODEL, PROP, SEQ, OUTDIR, GPU,NT,SENSITIVITIES=FIELD["b1m"])
+data=c.simulate_2D_slice(SL, B0, MODEL, PROP, SEQ, OUTDIR,FIELD["b1m"], GPU,NT)
 
 R=cmh.cm2DReconRSS()
 R.setSignalKSpace(data)
