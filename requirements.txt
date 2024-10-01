@@ -2,3 +2,4 @@ git+https://github.com/cloudmrhub-com/cloudmrhub
 botocore>=1.31,<1.32
 git+https://github.com/erosmontin/cmrawspy
 pandas
+h5py

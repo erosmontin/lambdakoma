@@ -16,25 +16,33 @@ if length(ARGS) < 4
     println("Usage: julia bodymodel_simulation.jl <T> <model> <tissue_properties> <sequence> <saving_directory> <slice>")
     exit(1)
 end
+Sensitivities_directory = Nothing
+
+if length(ARGS) > 6
+    Sensitivities_directory = ARGS[7]
+end
+
+
 println("Model: ", model)
 println("Tissue Properties: ", prop)
 println("Sequence: ", seq)
 println("Output Directory: ", directory)
 println("Slice: ", slicen)
 println("B0: ", B0)
+println("Sensitivities Directory: ", B0)
 
 GPU = false
 println(length(ARGS))
 
-if length(ARGS) > 6
-    GPU = parse(Bool, lowercase(ARGS[7]))
+if length(ARGS) > 7
+    GPU = parse(Bool, lowercase(ARGS[8]))
 end
 
 NT=1
 if !GPU
     println("Running on CPU")
-    if length(ARGS) > 7
-        NT=parse(Int,ARGS[8])
+    if length(ARGS) > 8
+        NT=parse(Int,ARGS[9])
     end
 
 end
@@ -58,6 +66,28 @@ end
 structure = niread(model);
 voxelSize = [structure.header.pixdim[i] for i = 2:min(structure.header.dim[1], 3)+1][1];
 slice = structure.raw[:, :, slicen];
+
+
+if Sensitivities_directory != Nothing
+    if !isdir(Sensitivities_directory)
+        println("Sensitivities Directory ", Sensitivities_directory, " does not exist.")
+        exit(1)
+    else
+        files = readdir(Sensitivities_directory)
+        slices = []
+        for file in files
+            structure = niread(joinpath(Sensitivities_directory, file))
+            slice = structure.raw[:, :, slicen]
+            # Append the slice to the slices array
+            push!(slices, slice)
+        end
+        # Concatenate the slices along the 4th dimension to create a 4D array
+        sensitivities = cat(dims=4, slices...)
+    end
+    end
+
+    
+
 
 # Plot selected slice
 # plot_image(slice)

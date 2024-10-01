@@ -21,13 +21,15 @@ if len(sys.argv) > 2:
 SEQ="pipeline/sdl_pypulseq.seq"
 MODEL="pipeline/model.nii.gz"
 PROP="pipeline/Tissue_300MHz.prop"
-FIELD="ggg.mhd"
+FIELD=c.readMarieOutput("/home/eros/Downloads/Duke_5mm_7T_PWC_GMTcoil_ultimatesurfacebasis_TMD(1).zip")
+
+
 B0=7.0
 NT=10
 GPU=False
 A=pn.Pathable(OUTDIR+'/')
 A.ensureDirectoryExistence()
-T,SL=c.process_slice(SL, B0, MODEL, PROP, SEQ, OUTDIR, GPU,NT)
+T,SL=c.process_slice(SL, B0, MODEL, PROP, SEQ, OUTDIR, GPU,NT,SENSITIVTIES=FIELD["b1m"])
 import matplotlib.pyplot as plt
 plt.imshow(np.abs(T), cmap='gray')
 _tim=L.stop()
