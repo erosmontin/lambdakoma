@@ -3,21 +3,28 @@ import cloudmrhub.cm2D as cmh
 import numpy as np
 
 def process_slice(SL, B0, MODEL, PROP, SEQ, OUTDIR, SENSITIVITIES=None,GPU=False, NT=10):
+    # simulate the slice
+    data = simulate_2D_slice(SL, B0, MODEL, PROP, SEQ, OUTDIR, SENSITIVITIES=SENSITIVITIES,GPU=GPU, NT=NT)
+    R=cmh.cm2DReconRSS()
+    R.setPrewhitenedSignal(data)
+    return R.getOutput(),SL
+
+def simulate_2D_slice(SL, B0, MODEL, PROP, SEQ, OUTDIR, SENSITIVITIES=None,GPU=False, NT=10):
     OUTDIR = OUTDIR + f"/{SL}"
     G=pn.GarbageCollector()
     G.throw(OUTDIR)
     B=pn.BashIt()
-    B.setCommand(f"julia --threads=auto -O3 pipeline/bodymodel_simulation.jl {B0} {MODEL} {PROP} {SEQ} {OUTDIR} {SL} {GPU} {NT}")
+    B.setCommand(f"julia --threads=auto -O3 pipeline/bodymodel_simulation.jl {B0} {MODEL} {PROP} {SEQ} {OUTDIR} {SL} {SENSITIVITIES} {GPU} {NT}")
     B.run()
     # reconstruct the image
     info=pn.Pathable(OUTDIR + "/info.json")
     J=info.readJson()
     data = np.load(J["KS"])
-    R=cmh.cm2DReconRSS()
-    data = np.expand_dims(data, axis=-1)
-    R.setPrewhitenedSignal(data)
+    if len(data.shape) == 2:
+        data = np.expand_dims(data, axis=-1)
     G.trash()
-    return R.getOutput(),SL
+    return data
+
 
 import zipfile
 import scipy.io
