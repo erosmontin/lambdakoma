@@ -22,7 +22,24 @@ SEQ="pipeline/sdl_pypulseq.seq"
 SEQ="pipeline/sdl_miniflash.seq"
 MODEL="pipeline/model.nii.gz"
 PROP="pipeline/Tissue_300MHz.prop"
-FIELD=c.readMarieOutput("pipeline/marie.zip",target=MODEL)
+
+import pyable_eros_montin.imaginable as ima
+import numpy as np
+
+model=ima.Imaginable(MODEL)
+print(model.getImageSize())
+SP=model.getImageSpacing()
+model.changeImageSpacing([300/128,300/128,SP[2]])
+print(model.getImageSize())
+
+FOVMODL=pn.createRandomTemporaryPathableFromFileName("model.nii.gz").getPosition()
+model.writeImageAs(FOVMODL)
+
+FIELD=c.readMarieOutput("pipeline/marie.zip",target=FOVMODL)
+
+
+
+
 
 
 B0=7.0
