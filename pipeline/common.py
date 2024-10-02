@@ -2,7 +2,9 @@ import pynico_eros_montin.pynico as pn
 import cloudmrhub.cm2D as cmh
 import numpy as np
 
+
 def process_slice(SL, B0, MODEL, PROP, SEQ, OUTDIR, SENSITIVITIES=None,GPU=False, NT=10):
+    #old version
     # simulate the slice
     data = simulate_2D_slice(SL, B0, MODEL, PROP, SEQ, OUTDIR, SENSITIVITIES,GPU, NT)
     R=cmh.cm2DReconRSS()
@@ -10,6 +12,7 @@ def process_slice(SL, B0, MODEL, PROP, SEQ, OUTDIR, SENSITIVITIES=None,GPU=False
     return R.getOutput(),SL
 
 def simulate_2D_slice(SL, B0, MODEL, PROP, SEQ, OUTDIR, SENSITIVITIES=None,GPU=False, NT=10):
+    # old version
     OUTDIR = OUTDIR + f"/{SL}"
     G=pn.GarbageCollector()
     G.throw(OUTDIR)
@@ -25,12 +28,23 @@ def simulate_2D_slice(SL, B0, MODEL, PROP, SEQ, OUTDIR, SENSITIVITIES=None,GPU=F
     G.trash()
     return data
 
-def simulate_2D_slicev1(SL, B0, MODEL, PROP, SEQ, OUTDIR, SENSITIVITIES=None,GPU=False, NT=10):
+def process_slicev1(SL, B0, T1,T2,T2star,dW,PD,FOVi,FOVj,dx, SEQ, OUTDIR,SENS_DIR ,GPU,NT):
+    # new version
+    # simulate the slice
+    data = simulate_2D_slicev1(SL, B0, T1,T2,T2star,dW,PD,FOVi,FOVj,dx, SEQ, OUTDIR,SENS_DIR ,GPU, NT)
+    R=cmh.cm2DReconRSS()
+    R.setPrewhitenedSignal(data)
+    return R.getOutput(),SL
+
+def simulate_2D_slicev1(SL, B0, T1,T2,T2star,dW,PD,FOVi,FOVj,dx, SEQ, OUTDIR,SENS_DIR ,GPU,NT):
     OUTDIR = OUTDIR + f"/{SL}"
     G=pn.GarbageCollector()
     G.throw(OUTDIR)
     B=pn.BashIt()
-    B.setCommand(f"julia --threads=auto -O3 pipeline/bodymodel_simulation.jl {B0} {MODEL} {PROP} {SEQ} {OUTDIR} {SL} {SENSITIVITIES} {GPU} {NT}")
+    
+    B.setCommand(f"julia --threads=auto -O3 pipeline/simulator.jl {B0} {T1} {T2} {T2star} {dW} {PD} {FOVi} {FOVj} {dx} {SEQ} {OUTDIR} {SL} {SENS_DIR} {GPU} {NT}")
+    print(B.getCommand())
+    print("--"*10)
     B.run()
     # reconstruct the image
     info=pn.Pathable(OUTDIR + "/info.json")
@@ -42,9 +56,7 @@ def simulate_2D_slicev1(SL, B0, MODEL, PROP, SEQ, OUTDIR, SENSITIVITIES=None,GPU
     return data
 
 
-
 import zipfile
-import scipy.io
 import cloudmrhub.cm2D as cmh
 import pyable_eros_montin.imaginable as ima
 import os
@@ -62,7 +74,7 @@ def readMarieOutput(file,b1mpath=None,target=None):
         zip_ref.extractall(O.getPath())
     O.addBaseName("info.json")
     J=O.readJson()
-    OUT={"b1m":[],"NC":[]}
+    OUT={"b1m":[],"NC":None,"B0":J["headers"]["Inputs"]["b0"],"T1":None,"T2":None,"dW":None,"T2star":None,"PD":None}
     if target:
         _t=ima.Imaginable(target)
     for d in J["data"]:
@@ -78,7 +90,21 @@ def readMarieOutput(file,b1mpath=None,target=None):
             OUT["b1m"].append(f)
         if "noisecovariance" in d["description"].lower():
             f=os.path.join(O.getPath(),d["filename"])
-            OUT["NC"].append(f)
+            OUT["NC"]=f
+        if "t1" in d["description"].lower():
+            f=os.path.join(O.getPath(),d["filename"])
+            OUT["T1"]=f
+        if d["description"].lower()=="t2":
+            f=os.path.join(O.getPath(),d["filename"])
+            OUT["T2"]=f
+        if "dw" in d["description"].lower():
+            f=os.path.join(O.getPath(),d["filename"])
+            OUT["dW"]=f
+        if d["description"].lower()=="t2star":
+            OUT["T2star"]=f
+        if "rhoh" in d["description"].lower():
+            OUT["PD"]=f
+            
     return OUT
         
         
