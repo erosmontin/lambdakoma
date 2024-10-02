@@ -27,30 +27,21 @@ directory = ARGS[11]
 slicen = parse(Int,ARGS[12])
 if length(ARGS) < 12
     println("Error: This script requires at least 3 arguments.")
-    println("Usage: julia simulator.jl B0(T) T1(ms) T2(ms) T2s(ms) Δw(rad*s) ρ FOVx(m) FOVy(m) Δx(m) seq directory slicen [Sensitivities_directory] [GPU] [NT]")
+    println("Usage: julia simulator.jl B0(T) T1(ms) T2(ms) T2s(ms) Δw(rad*s) ρ FOVx(m) FOVy(m) Δx(m) seq directory slicen [GPU] [NT]")
     exit(1)
-end
-
-Sensitivities_directory = nothing
-
-if length(ARGS) > 12
-    println("Sensitivities Directory: ", ARGS[13])
-    if !isnothing(ARGS[13]) && isdir(ARGS[13])
-        Sensitivities_directory = ARGS[13]
-    end
 end
 
 GPU = false
 
-if length(ARGS) > 13
-    GPU = parse(Bool, lowercase(ARGS[14]))
+if length(ARGS) > 12
+    GPU = parse(Bool, lowercase(ARGS[13]))
 end
 
 NT=1
 if !GPU
     println("Running on CPU")
-    if length(ARGS) > 14
-        NT=parse(Int,ARGS[15])
+    if length(ARGS) > 13
+        NT=parse(Int,ARGS[14])
     end
 end
 
@@ -70,7 +61,6 @@ println("Δx: ", Δx)
 println("Sequence: ", seq)
 println("Directory: ", directory)
 println("Slice: ", slicen)
-println("Sensitivities Directory: ", Sensitivities_directory)
 println("GPU: ", GPU)
 println("Number of Threads: ", NT)
 
@@ -119,23 +109,7 @@ T2 = T2*1e-3; #(s)
 T2s = T2s*1e-3;#(s)
 
 
-sensitivities = nothing
-if !isnothing(Sensitivities_directory)
-    if !isdir(Sensitivities_directory)
-        println("Sensitivities Directory ", Sensitivities_directory, " does not exist.")
-        exit(1)
-    else
-        files = readdir(Sensitivities_directory)
-        slices = []
-        for file in files
-            O=joinpath(Sensitivities_directory, file)
-            
-            _slice_ = read_nifti_slice(O, slicen)
-            push!(slices, _slice_)
-        end
-        sensitivities = cat(dims=4, slices...)
-    end
-end
+
 
 
 M, N = size(ρ);          # Number of spins in x and y
@@ -147,13 +121,7 @@ x, y = x .+ y'*0, x*0 .+ y'; # x and y grid points
 
 prop=Dict("B0"=>B0, "T1"=>_T1, "T2"=>_T2, "T2s"=>_T2s, "Δw"=>_Δw, "ρ"=>_ρ, "FOVx"=>FOVx, "FOVy"=>FOVy, "Δx"=>Δx)
 
-println(size(T1))
-@show size(T2)
-@show size(T2s)
-@show size(Δw)
-@show size(ρ)
-@show size(x)
-@show size(y)
+
 # Define the phantom
 obj = Phantom{Float64}(
     name = "duke_2d",
@@ -188,13 +156,6 @@ println("Scanner created")
 raw = simulate(obj, seq, sys; sim_params);
 display(size(raw.profiles[1].data))
 println("Simulation done")
-if !isnothing(sensitivities)
-	profile0 = raw.profiles[1]
-	resize!(raw.profiles,size(sensitivities,4))
-	for k=1:size(sensitivities,4)
-		raw.profiles[k] = Profile(profile0.head,profile0.traj,profile0.data.*view(sensitivities,:,:,:,k))
-	end
-end
 Np = length(raw.profiles)
 Nf= size(raw.profiles[1].data,1)
 
