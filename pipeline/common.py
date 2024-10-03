@@ -36,13 +36,13 @@ def process_slicev1(SL, B0, T1,T2,T2star,dW,PD,FOVi,FOVj,dx, SEQ, OUTDIR,SENS_DI
     R.setPrewhitenedSignal(data)
     return R.getOutput(),SL
 
-def simulate_2D_slicev1(SL, B0, T1,T2,T2star,dW,PD,FOVi,FOVj,dx, SEQ, OUTDIR,GPU,NT):
+def simulate_2D_slicev1(SL, B0, T1,T2,T2star,dW,PD,FOVi,FOVj,dx, SEQ, OUTDIR,SENS_DIR ,GPU,NT):
     OUTDIR = OUTDIR + f"/{SL}"
     G=pn.GarbageCollector()
     G.throw(OUTDIR)
     B=pn.BashIt()
     
-    B.setCommand(f"julia --threads=auto -O3 pipeline/simulator.jl {B0} {T1} {T2} {T2star} {dW} {PD} {FOVi} {FOVj} {dx} {SEQ} {OUTDIR} {SL}  {GPU} {NT}")
+    B.setCommand(f"julia --threads=auto -O3 pipeline/simulator.jl {B0} {T1} {T2} {T2star} {dW} {PD} {FOVi} {FOVj} {dx} {SEQ} {OUTDIR} {SL} {SENS_DIR} {GPU} {NT}")
     print(B.getCommand())
     print("--"*10)
     B.run()

@@ -41,17 +41,19 @@ NT=10
 GPU=False
 A=pn.Pathable(OUTDIR+'/')
 A.ensureDirectoryExistence()
+SENS_DIR=pn.Pathable(FIELD["b1m"][0]).getPath()
 FOVi=0.3
 FOVj=0.3
 dx=.5/1000
 
-T,SL=c.process_slicev1(SL, B0, FIELD["T1"],FIELD["T2"],FIELD["T2star"],FIELD["dW"],FIELD["PD"],FOVi,FOVj,dx, SEQ, OUTDIR,GPU,NT)
+T,SL=c.process_slicev1(SL, B0, FIELD["T1"],FIELD["T2"],FIELD["T2star"],FIELD["dW"],FIELD["PD"],FOVi,FOVj,dx, SEQ, OUTDIR,SENS_DIR ,GPU,NT)
 import matplotlib.pyplot as plt
 plt.imshow(np.abs(T), cmap='gray')
 _tim=L.stop()
 plt.title(f'Reconstructed Image (RSS) {float(_tim["time"])/60.0:.2f} min, slice {SL}')
 # origin of axis  at bottom left
 plt.gca().invert_yaxis()
+
 plt.colorbar()
 plt.show()
 
