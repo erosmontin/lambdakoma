@@ -37,11 +37,6 @@ model.writeImageAs(FOVMODL)
 
 FIELD=c.readMarieOutput("pipeline/marie.zip",target=FOVMODL)
 
-
-
-
-
-
 B0=7.0
 NT=10
 GPU=False
@@ -59,5 +54,3 @@ plt.gca().invert_yaxis()
 
 plt.colorbar()
 plt.show()
-
-

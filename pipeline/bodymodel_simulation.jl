@@ -3,92 +3,61 @@ using NIfTI
 using NPZ
 using JSON
 using NPZ
+using Printf
 
-# myscript.jl
-B0= parse(Float64,ARGS[1])
-model = ARGS[2]
-prop = ARGS[3]
-seq = ARGS[4]
-directory = ARGS[5]
-slicen = parse(Int,ARGS[6])
 if length(ARGS) < 4
-    println("Error: This script requires at least 3 arguments.")
-    println("Usage: julia bodymodel_simulation.jl <T> <model> <tissue_properties> <sequence> <saving_directory> <_slice>")
+    println(stderr,"Error: This script requires at least 3 arguments.")
+    println(stderr,"Usage: julia bodymodel_simulation.jl <B0> <model> <tissue_properties> <sequence> <saving_directory> <slice_index> <sensitivities_dir>")
     exit(1)
 end
-Sensitivities_directory = nothing
 
-if length(ARGS) > 6
-    println("Sensitivities Directory: ", ARGS[7])
-    if !isnothing(ARGS[7]) && isdir(ARGS[7])
-        Sensitivities_directory = ARGS[7]
-    end
-end
+B0    = parse(Float64,ARGS[1])
+model = ARGS[2]
+prop  = ARGS[3]
+seq   = ARGS[4]
+directory = ARGS[5]
+sliceind = parse(Int,ARGS[6])
+b1m_dir = length(ARGS) > 6 ? ARGS[7] : ""
+GPU = length(ARGS) > 7 && parse(Bool, lowercase(ARGS[8]))
+NT = Threads.nthreads()
 
-
-println("Model: ", model)
-println("Tissue Properties: ", prop)
-println("Sequence: ", seq)
-println("Output Directory: ", directory)
-println("Slice: ", slicen)
 println("B0: ", B0)
-println("Sensitivities Directory: ", B0)
+println("Model: ", model)
+println("Tissue Prop.: ", prop)
+println("Sequence: ", seq)
+println("Output Dir.: ", directory)
+println("Slice: ", sliceind)
+println("Sensitivities Dir.: ", isempty(b1m_dir) ? "not supplied" : b1m_dir)
+@printf("Running on %s with %d CPU threads\n",GPU ? "GPU" : "CPU",NT)
 
-GPU = false
-println(length(ARGS))
-
-if length(ARGS) > 7
-    GPU = parse(Bool, lowercase(ARGS[8]))
-end
-
-NT=1
-if !GPU
-    println("Running on CPU")
-    if length(ARGS) > 8
-        NT=parse(Int,ARGS[9])
-    end
-
-end
-if !isfile(model)
-    println("Model File ", model, " does not exist.")
+if !isempty(b1m_dir) && !isdir(b1m_dir)
+    @printf(stderr,"Error: Coil sensitivities directory \"%s\" does not exist\n",b1m_dir)
     exit(1)
 end
-
 if !isfile(prop)
-    println("Tissue Properties File ", prop, " does not exist.")
+    @printf(stderr,"Error: Tissue properties file %s does not exist.\n",prop)
     exit(1)
 end
-
 if !isfile(seq)
-    println("Sequence File ", seq, " does not exist.")
+    @printf(stderr,"Error: Sequence file %s does not exist.\n",seq)
     exit(1)
 end
-
 
 # For NIfTI files
-structure = niread(model);
-voxelSize = [structure.header.pixdim[i] for i = 2:min(structure.header.dim[1], 3)+1][1];
-_slice = structure.raw[:, :, slicen];
+structure = niread(model)
+if length(structure.header.pixdim) < 2
+    @printf(stderr,"Error parsing model file:\nmodel.header.pixdim should have at least 2 entries.\n")
+end
+voxelSize = structure.header.pixdim[2]
+_slice = structure.raw[:, :, sliceind]
 
-sensitivities = nothing
-if isnothing(Sensitivities_directory)
-    if !isdir(Sensitivities_directory)
-        println("Sensitivities Directory ", Sensitivities_directory, " does not exist.")
-        exit(1)
-    else
-        files = readdir(Sensitivities_directory)
-        slices = []
-        for file in files
-            O=joinpath(Sensitivities_directory, file)
-            println(O)
-            _structure_ = niread(O)
-            _slice_ = _structure_.raw[:, :, slicen]
-            # Append the _slice to the slices array
-            push!(slices, _slice_)
-        end
-        # Concatenate the slices along the 4th dimension to create a 4D array
-        sensitivities = cat(dims=4, slices...)
-    end
+sensitivities = ones(ComplexF64,size(_slice)...,1)
+if !isempty(b1m_dir)
+    files = joinpath.(Ref(b1m_dir),readdir(b1m_dir))
+    foreach(println,files)
+    slices = [niread(file).raw[:,:,sliceind] for file in files]
+    # Concatenate the slices along the 4th dimension to create a 4D array
+    sensitivities = cat(dims=4, slices...)
 end
 
 # Plot selected _slice
@@ -104,97 +73,78 @@ y = -FOVy/2:Δx:FOVy/2;       # y spin coordinates vector
 x, y = x .+ y'*0, x*0 .+ y'; # x and y grid points
 
 # Read properties file
-
-propertiesFile = open(prop, "r");
-propertiesArray = readlines(propertiesFile);
-property_value = zeros(0);
-propertyLine = [];
-extractedProperties = [];
+propertiesFile = open(prop, "r")
+propertiesArray = readlines(propertiesFile)
+property_value = zeros(0)
+propertyLine = []
+extractedProperties = []
 for index in range(2, length(propertiesArray))
-    append!(propertyLine, [split(propertiesArray[index], " ")]);
+    append!(propertyLine, [split(propertiesArray[index], " ")])
 end
-close(propertiesFile);
-
-# value = parse(Float64, value)
+close(propertiesFile)
 
 # Define proton density, T1, T2, T2s, chemical shift arrays
-ρ = zeros(size(_slice)[1], size(_slice)[2]);
-T1 = zeros(size(_slice)[1], size(_slice)[2]);
-T2 = zeros(size(_slice)[1], size(_slice)[2]);
-T2s = zeros(size(_slice)[1], size(_slice)[2]);
-Δw = zeros(size(_slice)[1], size(_slice)[2]);
+ρ   = zeros(M,N)
+T1  = zeros(M,N)
+T2  = zeros(M,N)
+T2s = zeros(M,N)
+Δw  = zeros(M,N)
 for index in range(1, length(propertyLine))
     mask = _slice .== parse(Int, propertyLine[index][1])
     ρ[mask] .= parse(Float64, propertyLine[index][4])
     T1[mask] .= parse(Float64, propertyLine[index][2])
     T2[mask] .= parse(Float64, propertyLine[index][3])
     Δw[mask] .= parse(Float64, propertyLine[index][5])
-    
 end
-T1 = T1*1e-3;
-T2 = T2*1e-3;
-T2s = T2s*1e-3;
+T1 = T1*1e-3
+T2 = T2*1e-3
+T2s = T2s*1e-3
 
 # Define the phantom
+ρmask = map(!iszero,ρ)
+sensmat = reshape(sensitivities,length(ρ),:)
 obj = Phantom{Float64}(
     name = "duke_2d",
-	x = x[ρ.!=0],
-	y = y[ρ.!=0],
-	z = 0*x[ρ.!=0],
-	ρ = ρ[ρ.!=0],
-	T1 = T1[ρ.!=0],
-	T2 = T2[ρ.!=0],
-	T2s = T2s[ρ.!=0],
-	Δw = Δw[ρ.!=0],
-);
-
-println("Phantom created")
-# Simulate phantom
-seq = read_seq(seq); # Pulseq file
-
-println("Sequence read")
-sim_params = KomaNYUCore.default_sim_params();
-
-if !GPU
-    sim_params["gpu"] = false
-    sim_params["Nthreads"] = NT
- 
-end
-println("Simulation parameters set")
-sys = Scanner(B0=B0);
-println("Scanner created")
-raw = simulate(obj, seq, sys; sim_params);
-display(size(raw.profiles[1].data))
-println("Simulation done")
-if !isnothing(sensitivities)
-	profile0 = raw.profiles[1]
-	resize!(raw.profiles,size(sensitivities,4))
-	for k=1:size(sensitivities,4)
-		raw.profiles[k] = Profile(profile0.head,profile0.traj,profile0.data.*view(sensitivities,:,:,:,k))
-	end
-end
-Np = length(raw.profiles)
-Nf= size(raw.profiles[1].data,1)
-
-K=zeros(ComplexF32,Np,Nf)
-for i in range(1,Np)
-    K[i,:]=raw.profiles[i].data
-end
-
-if !isdir(directory)
-    mkpath(directory)
-end
-
-filename = directory * "/k.npz"
-
-npzwrite(filename, K)
-D=Dict("version"=> "v0.0v", "KS"=>filename, "origin"=>[0,0,0], "spacing"=>[1,1,1], "direction"=>[1,0,0,0,1,0,0,0,1],"_slice"=>slicen, "sequence"=>seq, "model"=>model, "properties"=>prop
+	x = x[ρmask],
+	y = y[ρmask],
+    z = zeros(eltype(x),count(ρmask)),
+	ρ = ρ[ρmask],
+	T1 = T1[ρmask],
+	T2 = T2[ρmask],
+	T2s = T2s[ρmask],
+	Δw = Δw[ρmask],
+    Bm = sensmat[view(ρmask,:),:]
 )
 
-jsonfilename = directory * "/info.json"
-json_data = JSON.json(D)
-open(jsonfilename, "w") do io
-    write(io, json_data)
+# Simulate phantom
+seq = read_seq(seq) # Pulseq file
+sim_params = KomaNYUCore.default_sim_params()
+sim_params["gpu"] = GPU
+sim_params["Nthreads"] = NT
+sys = Scanner(B0=B0)
+
+println("Generating k-space with")
+@printf("     phantom: %s\n",string(obj.name))
+@printf("    sequence: %s\n",string(seq))
+@printf("     scanner: %s\n",string(sys))
+signal = simulate(obj, seq, sys; sim_params)
+
+Np = length(signal.profiles)
+Nf = size(signal.profiles[1].data,1)
+Nrx = size(obj.Bm,2)
+
+kspacelengths = map(length∘Base.Fix2(getfield,:data),signal.profiles)
+println("Generated k-space with")
+@printf("    %d trajectories\n",Np)
+if allequal(kspacelengths)
+    @printf("    %d samples per trajectory\n",first(kspacelengths))
+else
+    @printf("    %d-%d samples per trajectory\n",extrema(kspacelengths)...)
 end
+@printf("    %d receive coils\n",Nrx)
 
-
+# save using ISMRMRD h5 file specification
+#raw_data = signal_to_raw_data(signal, seq; phantom_name=obj.name, sys=sys, sim_params=sim_params)
+raw_data_file = ISMRMRDFile(joinpath(directory,"kspace.h5"))
+println("Saving raw simulation data to $(raw_data_file)")
+save(raw_data_file,signal)
