@@ -6,4 +6,4 @@ backend/muscle/samconfig.toml
 pipeline/.vscode/launch.json
 .DS_Store
 camrie/
-
+.*.swp
