@@ -89,12 +89,12 @@ plotter.add_mesh(unstructured_grid,opacity=0.1)
 
 
 
-for i in [10,40,80]:
+for i in [10,20,40,80]:
     KSPACESIZE=[256,256,6]    
     ORIGINKSPACE=[-KSPACESIZE[0]//2,-KSPACESIZE[1]//2,i]
     D=ima.Imaginable(MODEL)
     OUT=[]
-    OUT.append(add_slice(plotter, KSPACESIZE, ORIGINKSPACE,D,rotation=[0,90,0],n=64))
+    OUT.append(add_slice(plotter, KSPACESIZE, ORIGINKSPACE,D,rotation=[20,90,45],n=64))
     for key, value in OUT[-1].items():
         if isinstance(value, np.ndarray):
             OUT[-1][key] = value.tolist()
