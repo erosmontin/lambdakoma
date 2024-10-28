@@ -46,7 +46,7 @@ FOVi=0.3
 FOVj=0.3
 dx=5.0/1000.0
 
-T,SL=c.process_slicev1(SL, B0, FIELD["T1"],FIELD["T2"],FIELD["T2star"],FIELD["dW"],FIELD["PD"],FOVi,FOVj,dx, SEQ, OUTDIR,SENS_DIR ,GPU,NT,debug=True)
+T,SL=c.process_slice(SL, B0, FIELD["T1"],FIELD["T2"],FIELD["T2star"],FIELD["dW"],FIELD["PD"],FOVi,FOVj,dx, SEQ, OUTDIR,SENS_DIR ,GPU,NT,debug=True)
 import matplotlib.pyplot as plt
 print(T.shape)
 plt.imshow(np.abs(T), cmap='gray')

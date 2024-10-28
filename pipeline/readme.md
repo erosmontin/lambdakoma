@@ -54,7 +54,9 @@ pip install numpy
 # usage 
 - Julia 
 ```julia
-julia bodymodel_simulation.jl <T> <model> <tissue_properties> <sequence> <saving_directory> <slice>
+
+julia simulator.jl B0 T1map T2map T2smap DeltaW protonDensitymap FoVx FOVy dx sequence_name.pulseq /path/to/output/directory SLICENUM SENS_Directory GPU NunmberOfThreads
+
 ```
 
 - python create a script file

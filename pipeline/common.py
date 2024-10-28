@@ -3,40 +3,15 @@ import cloudmrhub.cm2D as cmh
 import numpy as np
 
 
-def process_slice(SL, B0, MODEL, PROP, SEQ, OUTDIR, SENSITIVITIES=None,GPU=False, NT=10):
-    #old version
-    # simulate the slice
-    data = simulate_2D_slice(SL, B0, MODEL, PROP, SEQ, OUTDIR, SENSITIVITIES,GPU, NT)
-    R=cmh.cm2DReconRSS()
-    R.setPrewhitenedSignal(data)
-    return R.getOutput(),SL
-
-def simulate_2D_slice(SL, B0, MODEL, PROP, SEQ, OUTDIR, SENSITIVITIES=None,GPU=False, NT=10):
-    # old version
-    OUTDIR = OUTDIR + f"/{SL}"
-    G=pn.GarbageCollector()
-    G.throw(OUTDIR)
-    B=pn.BashIt()
-    B.setCommand(f"julia --threads=auto -O3 pipeline/bodymodel_simulation_old.jl {B0} {MODEL} {PROP} {SEQ} {OUTDIR} {SL} {SENSITIVITIES} {GPU} {NT}")
-    # B.run()
-    # reconstruct the image
-    info=pn.Pathable(OUTDIR + "/info.json")
-    J=info.readJson()
-    data = np.load(J["KS"])
-    if len(data.shape) == 2:
-        data = np.expand_dims(data, axis=-1)
-    G.trash()
-    return data
-
-def process_slicev1(SL, B0, T1,T2,T2star,dW,PD,FOVi,FOVj,dx, SEQ, OUTDIR,SENS_DIR ,GPU,NT,debug=False):
+def process_slice(SL, B0, T1,T2,T2star,dW,PD,FOVi,FOVj,dx, SEQ, OUTDIR,SENS_DIR ,GPU,NT,debug=False):
     # new version
     # simulate the slice
-    data = simulate_2D_slicev1(SL, B0, T1,T2,T2star,dW,PD,FOVi,FOVj,dx, SEQ, OUTDIR,SENS_DIR ,GPU, NT,debug=debug)
+    data = simulate_2D_slice(SL, B0, T1,T2,T2star,dW,PD,FOVi,FOVj,dx, SEQ, OUTDIR,SENS_DIR ,GPU, NT,debug=debug)
     R=cmh.cm2DReconRSS()
     R.setPrewhitenedSignal(data)
     return R.getOutput(),SL
 
-def simulate_2D_slicev1(SL, B0, T1,T2,T2star,dW,PD,FOVi,FOVj,dx, SEQ, OUTDIR,SENS_DIR ,GPU,NT,debug=False):
+def simulate_2D_slice(SL, B0, T1,T2,T2star,dW,PD,FOVi,FOVj,dx, SEQ, OUTDIR,SENS_DIR ,GPU,NT,debug=False):
     OUTDIR = OUTDIR + f"/{SL}"
     
     G=pn.GarbageCollector()
@@ -92,33 +67,27 @@ def readMarieOutput(file,b1mpath=None,target=None):
             else:
                 shutil.move(of,b1mpath)
             OUT["b1m"].append(f)
+        f=os.path.join(O.getPath(),d["filename"])
         if "noisecovariance" in d["description"].lower():
-            f=os.path.join(O.getPath(),d["filename"])
+            
             OUT["NC"]=f
         if "t1" in d["description"].lower():
-            f=os.path.join(O.getPath(),d["filename"])
+            
             OUT["T1"]=f
         if d["description"].lower()=="t2":
-            f=os.path.join(O.getPath(),d["filename"])
+            
             OUT["T2"]=f
         if "dw" in d["description"].lower():
-            f=os.path.join(O.getPath(),d["filename"])
+            
             OUT["dW"]=f
         if d["description"].lower()=="t2star":
+            
             OUT["T2star"]=f
-        if "rhoh" in d["description"].lower():
+        if d["description"].lower()=="rhoh":
+            
             OUT["PD"]=f
             
     return OUT
-        
-        
-    
-        
-        
-        
-    
-    
-    
 if __name__=="__main__":
-    OUT="/home/eros/Downloads/Duke_5mm_7T_PWC_GMTcoil_ultimatesurfacebasis_TMD(1).zip"
+    OUT="pipeline/Duke_5mm_7T_PWC_GMTcoil_ultimatesurfacebasis_TMD.zip"
     print(readMarieOutput(OUT))
