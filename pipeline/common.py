@@ -18,7 +18,7 @@ def simulate_2D_slice(SL, B0, MODEL, PROP, SEQ, OUTDIR, SENSITIVITIES=None,GPU=F
     G.throw(OUTDIR)
     B=pn.BashIt()
     B.setCommand(f"julia --threads=auto -O3 pipeline/bodymodel_simulation_old.jl {B0} {MODEL} {PROP} {SEQ} {OUTDIR} {SL} {SENSITIVITIES} {GPU} {NT}")
-    B.run()
+    # B.run()
     # reconstruct the image
     info=pn.Pathable(OUTDIR + "/info.json")
     J=info.readJson()
@@ -28,20 +28,22 @@ def simulate_2D_slice(SL, B0, MODEL, PROP, SEQ, OUTDIR, SENSITIVITIES=None,GPU=F
     G.trash()
     return data
 
-def process_slicev1(SL, B0, T1,T2,T2star,dW,PD,FOVi,FOVj,dx, SEQ, OUTDIR,SENS_DIR ,GPU,NT):
+def process_slicev1(SL, B0, T1,T2,T2star,dW,PD,FOVi,FOVj,dx, SEQ, OUTDIR,SENS_DIR ,GPU,NT,debug=False):
     # new version
     # simulate the slice
-    data = simulate_2D_slicev1(SL, B0, T1,T2,T2star,dW,PD,FOVi,FOVj,dx, SEQ, OUTDIR,SENS_DIR ,GPU, NT)
+    data = simulate_2D_slicev1(SL, B0, T1,T2,T2star,dW,PD,FOVi,FOVj,dx, SEQ, OUTDIR,SENS_DIR ,GPU, NT,debug=debug)
     R=cmh.cm2DReconRSS()
     R.setPrewhitenedSignal(data)
     return R.getOutput(),SL
 
-def simulate_2D_slicev1(SL, B0, T1,T2,T2star,dW,PD,FOVi,FOVj,dx, SEQ, OUTDIR,SENS_DIR ,GPU,NT):
+def simulate_2D_slicev1(SL, B0, T1,T2,T2star,dW,PD,FOVi,FOVj,dx, SEQ, OUTDIR,SENS_DIR ,GPU,NT,debug=False):
     OUTDIR = OUTDIR + f"/{SL}"
-    G=pn.GarbageCollector()
-    G.throw(OUTDIR)
-    B=pn.BashIt()
     
+    G=pn.GarbageCollector()
+    if debug:
+        G=[]
+    G.append(OUTDIR)
+    B=pn.BashIt()    
     B.setCommand(f"julia --threads=auto -O3 pipeline/simulator.jl {B0} {T1} {T2} {T2star} {dW} {PD} {FOVi} {FOVj} {dx} {SEQ} {OUTDIR} {SL} {SENS_DIR} {GPU} {NT}")
     print(B.getCommand())
     print("--"*10)
@@ -52,7 +54,9 @@ def simulate_2D_slicev1(SL, B0, T1,T2,T2star,dW,PD,FOVi,FOVj,dx, SEQ, OUTDIR,SEN
     data = np.load(J["KS"])
     if len(data.shape) == 2:
         data = np.expand_dims(data, axis=-1)
-    G.trash()
+    if not debug:
+        print("deleting",OUTDIR)
+        G.trash()
     return data
 
 

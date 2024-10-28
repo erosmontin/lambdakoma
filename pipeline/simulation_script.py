@@ -44,10 +44,11 @@ A.ensureDirectoryExistence()
 SENS_DIR=pn.Pathable(FIELD["b1m"][0]).getPath()
 FOVi=0.3
 FOVj=0.3
-dx=.5/1000
+dx=5.0/1000.0
 
-T,SL=c.process_slicev1(SL, B0, FIELD["T1"],FIELD["T2"],FIELD["T2star"],FIELD["dW"],FIELD["PD"],FOVi,FOVj,dx, SEQ, OUTDIR,SENS_DIR ,GPU,NT)
+T,SL=c.process_slicev1(SL, B0, FIELD["T1"],FIELD["T2"],FIELD["T2star"],FIELD["dW"],FIELD["PD"],FOVi,FOVj,dx, SEQ, OUTDIR,SENS_DIR ,GPU,NT,debug=True)
 import matplotlib.pyplot as plt
+print(T.shape)
 plt.imshow(np.abs(T), cmap='gray')
 _tim=L.stop()
 plt.title(f'Reconstructed Image (RSS) {float(_tim["time"])/60.0:.2f} min, slice {SL}')

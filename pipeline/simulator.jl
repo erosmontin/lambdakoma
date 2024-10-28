@@ -198,6 +198,10 @@ end
 Np = length(raw.profiles)
 Nf= size(raw.profiles[1].data,1)
 
+@show raw.profiles
+@show raw.profiles[1]
+@show raw.profiles[1].data
+
 K=zeros(ComplexF32,Np,Nf)
 for i in range(1,Np)
     K[i,:]=raw.profiles[i].data
