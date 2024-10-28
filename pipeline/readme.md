@@ -61,7 +61,9 @@ julia simulator.jl B0 T1map T2map T2smap DeltaW protonDensitymap FoVx FOVy dx se
 
 - python create a script file
 
-- 
+```python
+python pipeline/simulation_script.py /path/to/outputpath sliceNumber
+```
 
 
 # koma MRI Julia Customization 
