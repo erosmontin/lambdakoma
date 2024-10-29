@@ -14,11 +14,11 @@ OUTDIR="/g/KOMA"
 if len(sys.argv) > 1:
     OUTDIR = sys.argv[1]
 
-SL=28
+SL=40
 if len(sys.argv) > 2:
     SL = int(sys.argv[2])
 
-SEQ="pipeline/sdl_pypulseq.seq"
+# SEQ="pipeline/sdl_pypulseq.seq"
 SEQ="pipeline/sdl_miniflash.seq"
 
 T1=None
@@ -42,8 +42,8 @@ GPU=False
 A=pn.Pathable(OUTDIR+'/')
 A.ensureDirectoryExistence()
 SENS_DIR=pn.Pathable(FIELD["b1m"][0]).getPath()
-FOVi=0.3
-FOVj=0.3
+FOVi=0.8
+FOVj=0.8
 dx=5.0/1000.0
 
 T,SL=c.process_slice(SL, B0, FIELD["T1"],FIELD["T2"],FIELD["T2star"],FIELD["dW"],FIELD["PD"],FOVi,FOVj,dx, SEQ, OUTDIR,SENS_DIR ,GPU,NT,debug=True)
