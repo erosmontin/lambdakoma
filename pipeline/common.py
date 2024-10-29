@@ -58,8 +58,11 @@ def readMarieOutput(file,b1mpath=None,target=None):
         _t=ima.Imaginable(target)
     for d in J["data"]:
         if d["description"]=="b1m":
+            #filename
+            fn=os.path.basename(d["filename"])
+            #orginal file
             of=os.path.join(O.getPath(),d["filename"])
-            f=os.path.join(b1mpath,d["filename"])
+            f=os.path.join(b1mpath,fn)
             if target:
                 _p=ima.Imaginable(of)
                 _p.resampleOnTargetImage(_t)
