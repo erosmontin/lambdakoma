@@ -91,6 +91,35 @@ def readMarieOutput(file,b1mpath=None,target=None):
             OUT["PD"]=f
             
     return OUT
+
+def simulate_2D_sliceKOMAMRI(SL, B0, MODEL, PROP, SEQ, OUTDIR, GPU=False, NT=10):
+    # old version
+    OUTDIR = OUTDIR + f"/{SL}"
+    G=pn.GarbageCollector()
+    G.throw(OUTDIR)
+    B=pn.BashIt()
+    
+    B.setCommand(f"julia --threads=auto -O3 pipeline/komaMRI_simulation.jl {B0} {MODEL} {PROP} {SEQ} {OUTDIR} {SL} {GPU} {NT}")
+    print(B.getCommand())
+    B.run()
+    # reconstruct the image
+    info=pn.Pathable(OUTDIR + "/info.json")
+    J=info.readJson()
+    data = np.load(J["KS"])
+    if len(data.shape) == 2:
+        data = np.expand_dims(data, axis=-1)
+    G.trash()
+    return data
+    
+def process_sliceKOMAMRI(SL, B0, MODEL, PROP, SEQ, OUTDIR, GPU=False, NT=10):
+    #old version
+    # simulate the slice
+    data = simulate_2D_sliceKOMAMRI(SL, B0, MODEL, PROP, SEQ, OUTDIR, GPU, NT)
+    R=cmh.cm2DReconRSS()
+    R.setPrewhitenedSignal(data)
+    return R.getOutput(),SL
+
+
 if __name__=="__main__":
     OUT="pipeline/Duke_5mm_7T_PWC_GMTcoil_ultimatesurfacebasis_TMD.zip"
     print(readMarieOutput(OUT))
