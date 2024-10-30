@@ -18,8 +18,8 @@ SL=40
 if len(sys.argv) > 2:
     SL = int(sys.argv[2])
 
-# SEQ="pipeline/sdl_pypulseq.seq"
-SEQ="pipeline/sdl_miniflash.seq"
+SEQ="pipeline/sdl_pypulseq.seq"
+#SEQ="pipeline/sdl_miniflash.seq"
 
 T1=None
 T2=None
@@ -42,11 +42,9 @@ GPU=False
 A=pn.Pathable(OUTDIR+'/')
 A.ensureDirectoryExistence()
 SENS_DIR=pn.Pathable(FIELD["b1m"][0]).getPath()
-FOVi=0.8
-FOVj=0.8
-dx=5.0/1000.0
+desired_resolution = (1e-3,1e-3)
 
-T,SL=c.process_slice(SL, B0, FIELD["T1"],FIELD["T2"],FIELD["T2star"],FIELD["dW"],FIELD["PD"],FOVi,FOVj,dx, SEQ, OUTDIR,SENS_DIR ,GPU,NT,debug=True)
+T,SL=c.process_slice(SL, B0, FIELD["T1"],FIELD["T2"],FIELD["T2star"],FIELD["dW"],FIELD["PD"],desired_resolution,SEQ,OUTDIR,SENS_DIR,GPU,NT,debug=True)
 import matplotlib.pyplot as plt
 print(T.shape)
 plt.imshow(np.abs(T), cmap='gray')
