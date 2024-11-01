@@ -7,3 +7,6 @@ pipeline/.vscode/launch.json
 .DS_Store
 camrie/
 .*.swp
+*.png
+cloudMR*.zip
+pipeline/__pycache__/*

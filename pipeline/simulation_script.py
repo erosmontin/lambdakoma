@@ -42,9 +42,9 @@ GPU=False
 A=pn.Pathable(OUTDIR+'/')
 A.ensureDirectoryExistence()
 SENS_DIR=pn.Pathable(FIELD["b1m"][0]).getPath()
-desired_resolution = (1e-3,1e-3)
+desired_spin_resolution = (1e-3,1e-3)
 
-T,SL=c.process_slice(SL, B0, FIELD["T1"],FIELD["T2"],FIELD["T2star"],FIELD["dW"],FIELD["PD"],desired_resolution,SEQ,OUTDIR,SENS_DIR,GPU,NT,debug=True)
+T,SL=c.process_slice(SL, B0, FIELD["T1"],FIELD["T2"],FIELD["T2star"],FIELD["dW"],FIELD["PD"],desired_spin_resolution,SEQ,OUTDIR,SENS_DIR,GPU,NT,debug=True)
 import matplotlib.pyplot as plt
 print(T.shape)
 plt.imshow(np.abs(T), cmap='gray')
