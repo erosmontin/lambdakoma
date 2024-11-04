@@ -5,6 +5,8 @@ using JSON
 using NPZ
 using Printf
 
+direction = "coronal"
+
 # B0, T1,T2, T2s, Δw, ρ,FOVx,FOVy,Δx, seq, directory, slicen, Sensitivities_directory, GPU, NT, 
 function read_nifti_slice(model, ind::Integer)
     slice=niread(model)
@@ -70,19 +72,48 @@ data = (;
 data = (;((k,upsample(v,ratio)) for (k,v) in pairs(data))...)
 
 M, N = size(data.ρ)
-x = range(start=-(M-1)//2,stop=(M-1)//2,length=M).*resolution[1]
-y = range(start=-(N-1)//2,stop=(N-1)//2,length=N).*resolution[2]
-x = reshape(repeat(x,outer=N),M,N)
-y = reshape(repeat(y,inner=M),M,N)
 
 # Define the phantom
 ρmask = map(!iszero,data.ρ)
 B1mmat = reshape(data.B1m,length(data.ρ),:)
+
+if lowercase(direction) == "axial"
+    x = range(start=-(M-1)//2,stop=(M-1)//2,length=M).*resolution[1]
+    y = range(start=-(N-1)//2,stop=(N-1)//2,length=N).*resolution[2]
+    x = reshape(repeat(x,outer=N),M,N)
+    y = reshape(repeat(y,inner=M),M,N)
+    zG=zeros(eltype(x),count(ρmask))
+    xG= x[ρmask]
+    yG= y[ρmask]
+
+elseif lowercase(direction) == "saggital"
+    z=range(start=-(N-1)//2,stop=(N-1)//2,length=N).*resolution[2]
+    y = range(start=-(M-1)//2,stop=(M-1)//2,length=M).*resolution[1]
+    z = reshape(repeat(z,outer=M),N,M)'
+    y = reshape(repeat(y,inner=N),N,M)'
+    
+    zG=z[ρmask]
+    yG=y[ρmask]
+    xG = zeros(eltype(z),count(ρmask))
+elseif lowercase(direction) == "coronal"
+    z = range(start=-(M-1)//2,stop=(M-1)//2,length=M).*resolution[1]
+    x = range(start=-(N-1)//2,stop=(N-1)//2,length=N).*resolution[2]
+    z = reshape(repeat(z,outer=N),M,N)
+    x = reshape(repeat(x,inner=M),M,N)
+    zG=z[ρmask]
+    xG=x[ρmask]
+    yG = ones(eltype(zG),count(ρmask))
+else
+    error("Invalid direction: $direction")
+end
+
+
+
 obj = Phantom{Float64}(
     name = "duke_2d",
-	x = x[ρmask],
-	y = y[ρmask],
-	z = zeros(eltype(x),count(ρmask)),
+	x = xG,
+	y = yG,
+	z = zG,
 	ρ = data.ρ[ρmask],
 	T1 = data.T1[ρmask],
 	T2 = data.T2[ρmask],
