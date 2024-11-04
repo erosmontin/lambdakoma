@@ -53,15 +53,15 @@ def read_cfl(filename):
     
     return data
 
-def process_slice(SL, B0, T1,T2,T2star,dW,PD,dres,SEQ,OUTDIR,SENS_DIR,GPU,NT,debug=False):
+def process_slice(SL, B0, T1,T2,T2star,dW,PD,dres,direction,SEQ,OUTDIR,SENS_DIR,GPU,NT,debug=False):
     # new version
     # simulate the slice
-    data = simulate_2D_slice(SL,B0,T1,T2,T2star,dW,PD,dres,SEQ,OUTDIR,SENS_DIR,GPU,NT,debug=debug)
+    data = simulate_2D_slice(SL,B0,T1,T2,T2star,dW,PD,dres,direction,SEQ,OUTDIR,SENS_DIR,GPU,NT,debug=debug)
     R=cmh.cm2DReconRSS()
     R.setPrewhitenedSignal(data)
     return R.getOutput(),SL
 
-def simulate_2D_slice(SL,B0,T1,T2,T2star,dW,PD,dres,SEQ,OUTDIR,SENS_DIR,GPU,NT,debug=False):
+def simulate_2D_slice(SL,B0,T1,T2,T2star,dW,PD,dres,direction,SEQ,OUTDIR,SENS_DIR,GPU,NT,debug=False):
     OUTDIR = OUTDIR + f"/{SL}"
     
     G=pn.GarbageCollector()
@@ -69,7 +69,7 @@ def simulate_2D_slice(SL,B0,T1,T2,T2star,dW,PD,dres,SEQ,OUTDIR,SENS_DIR,GPU,NT,d
         G=[]
     G.append(OUTDIR)
     B=pn.BashIt()
-    B.setCommand(f"julia --threads={NT} -O3 pipeline/simulator.jl {B0} {T1} {T2} {T2star} {dW} {PD} {dres[0]} {dres[1]} {SEQ} {OUTDIR} {SL} {SENS_DIR} {GPU}")
+    B.setCommand(f"julia --threads={NT} -O3 pipeline/simulator.jl {B0} {T1} {T2} {T2star} {dW} {PD} {dres[0]} {dres[1]} {dres[2]} {direction} {SEQ} {OUTDIR} {SL} {SENS_DIR} {GPU}")
     print(B.getCommand())
     print("--"*10)
     B.run()
