@@ -61,7 +61,8 @@ else:
     data=c.simulate_2D_slice(SL, B0, FIELD["T1"],FIELD["T2"],FIELD["T2star"],FIELD["dW"],FIELD["PD"],desired_spin_resolution,SEQ,OUTDIR,SENS_DIR,GPU,NT,debug=True)
 
 
-np.savez('kspace.npz',data=data)
+
+
 
 
 
@@ -132,14 +133,17 @@ L.setReferenceKSpace(REF)
 L.setAutocalibrationLines(ACL)
 L.setMaskCoilSensitivityMatrixBasedOnEspirit()
 OUT=L.getOutput()
-plt.imshow(1.0/np.abs(OUT), cmap='gray')
+OUT=1.0/np.abs(OUT)
+OUT[np.isnan(OUT)]=0
+OUT[np.isinf(OUT)]=0
+plt.imshow(OUT, cmap='hot')
 plt.title(f'Inverse G Factor R = {FA} x {PA}')
 plt.colorbar()
 plt.savefig(f'ig{SL:02d}{FA}{PA}.png',dpi=300)
 # plt.show()
 plt.close()
-
-plt.imshow(np.abs(OUT), cmap='gray')
+OUT=L.getOutput()
+plt.imshow(np.abs(OUT), cmap='hot')
 plt.title(f'G Factor R = {FA} x {PA}')
 plt.colorbar()
 plt.savefig(f'g{SL:02d}{FA}{PA}.png',dpi=300)
@@ -162,14 +166,17 @@ L.prepareCoilSensitivityMatrixPlot()
 plt.savefig(f'coil{SL:02d}.png',dpi=300)
 plt.close()
 OUT=L.getOutput()
-plt.imshow(1.0/np.abs(OUT), cmap='gray')
+OUT=1.0/np.abs(OUT)
+OUT[np.isnan(OUT)]=0
+OUT[np.isinf(OUT)]=0
+plt.imshow(OUT, cmap='hot')
 plt.title(f'Inverse G Factor R = {FA} x {PA}')
 plt.colorbar()
 plt.savefig(f'ig{SL:02d}{FA}{PA}.png',dpi=300)
 # plt.show()
 plt.close()
-
-plt.imshow(np.abs(OUT), cmap='gray')
+OUT=L.getOutput()
+plt.imshow(np.abs(OUT), cmap='hot')
 plt.title(f'G Factor R = {FA} x {PA}')
 plt.colorbar()
 plt.savefig(f'g{SL:02d}{FA}{PA}.png',dpi=300)

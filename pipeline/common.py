@@ -2,6 +2,56 @@ import pynico_eros_montin.pynico as pn
 import cloudmrhub.cm2D as cmh
 import numpy as np
 
+def write_cfl(data, filename):
+    """
+    Save a multi-coil complex NumPy array as a BART .cfl and .hdr file.
+    
+    Parameters:
+    filename (str): The base name for the .cfl and .hdr files.
+    data (numpy.ndarray): Complex-valued 3D numpy array with dimensions (width, height, coils).
+    """
+    # Check if data is complex
+    if not np.iscomplexobj(data):
+        raise ValueError("Data must be a complex-valued NumPy array.")
+    
+    # Ensure the data is 3D (for multi-coil data)
+    if data.ndim != 3:
+        raise ValueError("Data must be 3D with shape (width, height, coils) for multi-coil k-space.")
+    
+    # Transpose the data to have dimensions (coils, width, height) for BART
+    data = data.transpose(2, 0, 1)
+    
+    # Get dimensions
+    dims = data.shape  # Should now be (coils, width, height)
+    
+    # Write .hdr file
+    with open(filename + ".hdr", "w") as hdr_file:
+        hdr_file.write("# Dimensions\n")
+        hdr_file.write(" ".join(map(str, dims[::-1])) + "\n")  # Reverse for Fortran order (height, width, coils)
+    
+    # Write .cfl file (interleaving real and imaginary parts for each coil)
+    with open(filename + ".cfl", "wb") as cfl_file:
+        # Stack real and imaginary parts along a new last dimension
+        real_imag_data = np.stack((data.real, data.imag), axis=-1)
+        # Convert to float32 and write in binary format
+        real_imag_data.astype(np.float32).tofile(cfl_file)
+        
+def read_cfl(filename):
+    """Read BART .cfl and .hdr files and return the complex data array."""
+    filename_hdr = filename + '.hdr'
+    filename_cfl = filename + '.cfl'
+    
+    # Read the .hdr file to get the shape of the data
+    with open(filename_hdr, 'r') as hdr_file:
+        hdr_file.readline()  # Skip the first line
+        shape = tuple(map(int, hdr_file.readline().strip().split(' ')))[::-1]
+    
+    # Read the .cfl file to get the data
+    with open(filename_cfl, 'rb') as cfl_file:
+        data_r_i = np.fromfile(cfl_file, dtype='float32').reshape((2,) + shape)
+        data = data_r_i[0, ...] + 1j * data_r_i[1, ...]
+    
+    return data
 
 def process_slice(SL, B0, T1,T2,T2star,dW,PD,dres,SEQ,OUTDIR,SENS_DIR,GPU,NT,debug=False):
     # new version
