@@ -5,7 +5,7 @@ using JSON
 using NPZ
 using Printf
 
-direction = "coronal"
+direction = "axial"
 
 # B0, T1,T2, T2s, Δw, ρ,FOVx,FOVy,Δx, seq, directory, slicen, Sensitivities_directory, GPU, NT, 
 function read_nifti_slice(model, ind::Integer)
