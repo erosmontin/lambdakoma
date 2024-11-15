@@ -1,0 +1,77 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  # DynamoDB Table
+  MarieFieldMetaDataTable:
+    Type: AWS::DynamoDB::Table
+    Properties: 
+      TableName: MarieFieldMetaData
+      AttributeDefinitions:
+        - AttributeName: ID
+          AttributeType: S
+      KeySchema:
+        - AttributeName: ID
+          KeyType: HASH # Partition key
+      BillingMode: PAY_PER_REQUEST # On-demand pricing
+      SSESpecification: 
+        SSEEnabled: true
+      Tags:
+        - Key: "owner"
+          Value: "montie01"
+        - Key: "maintainer"
+          Value: "montie01"
+        - Key: "project"
+          Value: "marie"
+        - Key: "team"
+          Value: "cloudmrhub"
+        - Key: "status"
+          Value: "dev"
+        - Key: "deletable"
+          Value: "yes"
+        - Key: "purpose"
+          Value: "field metadata"
+        - Key: "description"
+          Value: "This table stores metadata about the fields in the Marie dataset."
+
+  # # Lambda Function
+  # QueryLambdaFunction:
+  #   Type: AWS::Lambda::Function
+  #   Properties:
+  #     FunctionName: QueryZipFiles
+  #     Handler: index.handler
+  #     Runtime: python3.9
+  #     Code:
+  #       ZipFile: s3://<YOUR_CODE_BUCKET>/query_lambda.zip
+  #     Environment:
+  #       Variables:
+  #         TABLE_NAME: !Ref MarieFieldMetaDataTable
+  #     Role: !GetAtt LambdaExecutionRole.Arn
+
+  # # Lambda Execution Role
+  # LambdaExecutionRole:
+  #   Type: AWS::IAM::Role
+  #   Properties:
+  #     AssumeRolePolicyDocument:
+  #       Version: '2012-10-17'
+  #       Statement:
+  #         - Effect: Allow
+  #           Principal:
+  #             Service: lambda.amazonaws.com
+  #           Action: sts:AssumeRole
+  #     Policies:
+  #       - PolicyName: DynamoDBAccessPolicy
+  #         PolicyDocument:
+  #           Version: '2012-10-17'
+  #           Statement:
+  #             - Effect: Allow
+  #               Action:
+  #                 - dynamodb:Query
+  #                 - dynamodb:Scan
+  #                 - dynamodb:GetItem
+  #                 - dynamodb:PutItem
+  #               Resource: !GetAtt MarieFieldMetaDataTable.Arn
+
+Outputs:
+  MarieFieldMetaDataTable:
+    Value: !Ref MarieFieldMetaDataTable
+    Export:
+      Name: MarieFieldMetaDataTable

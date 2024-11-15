@@ -1,0 +1,38 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  MarieFieldMetaDataTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: MarieFieldMetaData
+      AttributeDefinitions:
+      - AttributeName: ID
+        AttributeType: S
+      KeySchema:
+      - AttributeName: ID
+        KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification:
+        SSEEnabled: true
+      Tags:
+      - Key: owner
+        Value: montie01
+      - Key: maintainer
+        Value: montie01
+      - Key: project
+        Value: marie
+      - Key: team
+        Value: cloudmrhub
+      - Key: status
+        Value: dev
+      - Key: deletable
+        Value: 'yes'
+      - Key: purpose
+        Value: field metadata
+      - Key: description
+        Value: This table stores metadata about the fields in the Marie dataset.
+Outputs:
+  MarieFieldMetaDataTable:
+    Value:
+      Ref: MarieFieldMetaDataTable
+    Export:
+      Name: MarieFieldMetaDataTable

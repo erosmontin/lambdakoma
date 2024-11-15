@@ -1,0 +1,62 @@
+[
+    {
+        "id": "cloudMR_birdcagecoil-ismrm25.zip",
+        "file": "cloudMR_birdcagecoil.zip",
+        "conf": {
+            "coil": "birdcage",
+            "b0": "3T",
+            "channel": "1",
+            "phantom": "duke",
+            "version": "1.0.0",
+            "description": "Birdcage single coil for 3T MRI scanner with Duke phantom",
+            "date": "2024-09-01",
+            "user": "gianni02"
+        },
+        "location": {
+            "url": "https://mariefieldnyu.s3.us-east-1.amazonaws.com/cloudMR_birdcagecoil-ismrm25.zip",
+            "bucket": "mariefieldnyu",
+            "region": "us-east-1",
+            "key": "cloudMR_birdcagecoil-ismrm25.zip"
+        }
+    },
+    {
+        "file": "cloudMR_overlap.zip",
+        "id": "cloudMR_overlap-ismrm25.zip",
+        "conf": {
+            "coil": "overlap",
+            "b0": "3T",
+            "channel": "16",
+            "phantom": "duke",
+            "version": "1.0.0",
+            "description": "Overlap 16 channels coil for 3T MRI scanner with Duke phantom",
+            "date": "2024-09-01",
+            "user": "gianni02"
+        },
+        "location": {
+            "url": "https://mariefieldnyu.s3.us-east-1.amazonaws.com/cloudMR_overlap-ismrm25.zip",
+            "bucket": "mariefieldnyu",
+            "region": "us-east-1",
+            "key": "cloudMR_overlap-ismrm25.zip"
+        }
+    },
+    {
+        "file": "cloudMR_triangularcoil.zip",
+        "id": "cloudMR_triangularcoil-ismrm25.zip",
+        "conf": {
+            "coil": "triangular",
+            "b0": "3T",
+            "channel": "1",
+            "phantom": "duke",
+            "version": "1.0.0",
+            "description": "Triangular single coil for 3T MRI scanner with Duke phantom",
+            "date": "2024-09-01",
+            "user": "gianni02"
+        },
+        "location": {
+            "url": "https://mariefieldnyu.s3.us-east-1.amazonaws.com/cloudMR_triangularcoil-ismrm25.zip",
+            "bucket": "mariefieldnyu",
+            "region": "us-east-1",
+            "key": "cloudMR_triangularcoil-ismrm25.zip"
+        }
+    }
+]
