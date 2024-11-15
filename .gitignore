@@ -10,3 +10,6 @@ camrie/
 *.png
 cloudMR*.zip
 pipeline/__pycache__/*
+g-factor.zip
+pipeline/__pycache__/common.cpython-310.pyc
+pipeline/__pycache__/common.cpython-310.pyc
